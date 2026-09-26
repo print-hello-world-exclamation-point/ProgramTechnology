@@ -2,7 +2,7 @@
 
 class Program
 { 
-    static void Main()
+    static void Main() 
     {
         Console.WriteLine("Выберите источник данных:");
         Console.WriteLine("1 - InMemory");
