@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Bank;
 
-internal class BankAccount
+public class BankAccount
 {
     private List<Transaction> _allTransactions = new List<Transaction>();
     public string Owner {  get; private set; }
@@ -60,13 +60,24 @@ internal class BankAccount
         {
             balance += item.Amount;
             report.AppendLine($"{ item.date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Note}");
-            
         }
 
-        return report.ToString();
-            
-            
+        return report.ToString();   
+    }
 
+    // Ключевое слово virtual позволяет в дочернем классе
+    // предоставить другую реализацию 
+    // метода PerformMounthEndTransactions
+    public virtual void PerformMonthEndTransactions()
+    {
+
+    }
+
+    // переопределяем метод, который унаследовал от object
+    // этот метод должен возвращать строку с состоянием объекта
+    public override string ToString()
+    {
+        return $"Type: {GetType().Name}\tOwner: {Owner}\tNumber: {Number}\tBalance: {Balance}";
     }
 }
 
