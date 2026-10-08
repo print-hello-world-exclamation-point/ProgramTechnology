@@ -5,6 +5,7 @@ namespace Bank;
 
 public class BankAccount
 {
+    private readonly decimal _minimumBalance;
     private List<Transaction> _allTransactions = new List<Transaction>();
     public string Owner {  get; private set; }
     public decimal Balance 
@@ -21,13 +22,27 @@ public class BankAccount
     }
     public string Number {  get; }
     private static int s_accountNumberSeed = 1000000000;
-    public BankAccount(string name, decimal initialBalance)
+
+    public BankAccount(string name, decimal initialBalance) 
+        :this(name, initialBalance, 0)
+    {
+
+    }
+
+    public BankAccount(string name, decimal initialBalance, decimal minimumBalance)
     {
         Owner = name; //this.Owner = name;
-        MakeDeposit(initialBalance, DateTime.UtcNow, "Initial balance");
+
         Number = s_accountNumberSeed.ToString();
         s_accountNumberSeed++;
+
+        _minimumBalance = minimumBalance;
+
+        if (initialBalance > 0)
+            MakeDeposit(initialBalance, DateTime.UtcNow, "Initial balance");
+
     }
+
     public void MakeDeposit( decimal amount, DateTime date, string note)
     {
         if (amount < 0)
@@ -39,17 +54,33 @@ public class BankAccount
     }
     public void MakeWithdrawal(decimal amount, DateTime date, string note)
     {
-        if (amount <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Amount of withdrawal must be positive");
-        }
-        if (Balance < amount)
-        {
-            throw new InvalidOperationException("Not sufficient rubls for this withdrawal");
-        }
-        var withdrawal = new Transaction(-amount, date, note);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
+
+        Transaction? overdraftTransaction 
+            = CheckWithdrawalLimit(Balance - amount < _minimumBalance);
+        Transaction? withdrawal = new(-amount, date, note);
+
         _allTransactions.Add(withdrawal);
+
+        if (overdraftTransaction is not null)
+            _allTransactions.Add(overdraftTransaction);
+     
     }
+
+    protected virtual Transaction? CheckWithdrawalLimit(bool isOverdrawn)
+    {
+        if (isOverdrawn)
+        {
+           throw new InvalidOperationException("nit sufficient rubls for this withdrawal");
+        }
+        else
+        {
+            // default - содержит значение по умолчанию, так как тип возвращающего значения - ссылочный, то
+            // default = null
+            return default; // == return null;
+        }
+    }
+
     public string GetAccountHistory()
     {
         var report = new StringBuilder();
