@@ -1,13 +1,34 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Bank;
 
+/// <summary>
+/// Представляет базовый класс банковского счёта с поддержкой операций пополнения, снятия и ведения истории.
+/// </summary>
 public class BankAccount
 {
+    /// <summary>
+    /// Минимально допустимый баланс для данного счёта.
+    /// </summary>
     private readonly decimal _minimumBalance;
-    private List<Transaction> _allTransactions = new List<Transaction>();
+    /// <summary>
+    /// Начальное значение для генерации уникальных номеров счетов.
+    /// </summary>
+    private static int s_accountNumberSeed = 1000000000;
+    /// <summary>
+    /// Уникальный текстовый номер банковского счёта.
+    /// </summary>
+    public string Number { get; }
+    /// <summary>
+    /// Имя и фамилия владельца банковского счёта.
+    /// </summary>
     public string Owner {  get; private set; }
+    /// <summary>
+    /// Текущий баланс счёта, автоматически вычисляемый как сумма всех совершённых транзакций.
+    /// </summary>
     public decimal Balance 
     { 
         get
@@ -20,15 +41,23 @@ public class BankAccount
             return balance;
         }
     }
-    public string Number {  get; }
-    private static int s_accountNumberSeed = 1000000000;
 
+    /// <summary>
+    /// Внутренний список, хранящий всю историю транзакций по данному счёту.
+    /// </summary>
+    private List<Transaction> _allTransactions = new List<Transaction>();
+
+    /// <summary>
+    /// Инициализирует обычный банковский счёт с указанием владельца и начального баланса. Минимальный лимит баланса устанавливается в 0.
+    /// </summary>
     public BankAccount(string name, decimal initialBalance) 
         :this(name, initialBalance, 0)
     {
-
     }
 
+    /// <summary>
+    /// Инициализирует банковский счёт с указанием владельца, начального баланса и пользовательского лимита минимального баланса.
+    /// </summary>
     public BankAccount(string name, decimal initialBalance, decimal minimumBalance)
     {
         Owner = name; //this.Owner = name;
@@ -43,6 +72,9 @@ public class BankAccount
 
     }
 
+    /// <summary>
+    /// Зачисляет на счёт указанную сумму на определённую дату с текстовым комментарием. Сумма должна быть строго положительной.
+    /// </summary>
     public void MakeDeposit( decimal amount, DateTime date, string note)
     {
         if (amount < 0)
@@ -52,6 +84,10 @@ public class BankAccount
         var deposit = new Transaction(amount, date, note);
         _allTransactions.Add(deposit);
     }
+
+    /// <summary>
+    /// Списывает со счёта указанную сумму на определённую дату с комментарием, а также автоматически применяет овердрафт при нехватке лимита.
+    /// </summary>
     public void MakeWithdrawal(decimal amount, DateTime date, string note)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
@@ -67,6 +103,9 @@ public class BankAccount
      
     }
 
+    /// <summary>
+    /// Проверяет, уходит ли счёт в минус ниже лимита. Возвращает транзакцию штрафа для кредитного счёта или генерирует ошибку для обычного.
+    /// </summary>
     protected virtual Transaction? CheckWithdrawalLimit(bool isOverdrawn)
     {
         if (isOverdrawn)
@@ -81,6 +120,9 @@ public class BankAccount
         }
     }
 
+    /// <summary>
+    /// Формирует и возвращает форматированную текстовую строку со всей историей изменений баланса и транзакций по счёту.
+    /// </summary>
     public string GetAccountHistory()
     {
         var report = new StringBuilder();
@@ -99,13 +141,18 @@ public class BankAccount
     // Ключевое слово virtual позволяет в дочернем классе
     // предоставить другую реализацию 
     // метода PerformMounthEndTransactions
+    /// <summary>
+    /// Выполняет регламентные расчёты и транзакции в конце месяца. Переопределяется в классах-наследниках.
+    /// </summary>
     public virtual void PerformMonthEndTransactions()
     {
-
     }
 
     // переопределяем метод, который унаследовал от object
     // этот метод должен возвращать строку с состоянием объекта
+    /// <summary>
+    /// Возвращает текстовое представление счёта, включающее его тип, имя владельца, номер и текущий баланс.
+    /// </summary>
     public override string ToString()
     {
         return $"Type: {GetType().Name}\tOwner: {Owner}\tNumber: {Number}\tBalance: {Balance}";
