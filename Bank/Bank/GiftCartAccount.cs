@@ -3,7 +3,7 @@
 /// <summary>
 /// Представляет счёт подарочной карты, который может автоматически пополняться раз в месяц на фиксированную сумму.
 /// </summary>
-internal class GiftCartAccount: BankAccount
+internal class GiftCartAccount : BankAccount
 {
     /// <summary>
     /// Размер фиксированного ежемесячного пополнения, установленный для данной карты.

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 
 namespace Bank;
 
@@ -14,6 +11,13 @@ public class BankAccount
     /// Минимально допустимый баланс для данного счёта.
     /// </summary>
     private readonly decimal _minimumBalance;
+
+    /// <summary>
+    /// Статус клиента банка. Определяет размер комиссии за обслуживание,
+    /// процент на остаток свыше 10 000 и кэшбэк на списания.
+    /// </summary>
+    public ClientStatus Status { get; set; }
+
     /// <summary>
     /// Начальное значение для генерации уникальных номеров счетов.
     /// </summary>
@@ -25,12 +29,12 @@ public class BankAccount
     /// <summary>
     /// Имя и фамилия владельца банковского счёта.
     /// </summary>
-    public string Owner {  get; private set; }
+    public string Owner { get; private set; }
     /// <summary>
     /// Текущий баланс счёта, автоматически вычисляемый как сумма всех совершённых транзакций.
     /// </summary>
-    public decimal Balance 
-    { 
+    public decimal Balance
+    {
         get
         {
             decimal balance = 0;
@@ -50,8 +54,8 @@ public class BankAccount
     /// <summary>
     /// Инициализирует обычный банковский счёт с указанием владельца и начального баланса. Минимальный лимит баланса устанавливается в 0.
     /// </summary>
-    public BankAccount(string name, decimal initialBalance) 
-        :this(name, initialBalance, 0)
+    public BankAccount(string name, decimal initialBalance)
+        : this(name, initialBalance, 0)
     {
     }
 
@@ -67,6 +71,8 @@ public class BankAccount
 
         _minimumBalance = minimumBalance;
 
+        Status = ClientStatus.Regular;
+
         if (initialBalance > 0)
             MakeDeposit(initialBalance, DateTime.UtcNow, "Initial balance");
 
@@ -75,7 +81,7 @@ public class BankAccount
     /// <summary>
     /// Зачисляет на счёт указанную сумму на определённую дату с текстовым комментарием. Сумма должна быть строго положительной.
     /// </summary>
-    public void MakeDeposit( decimal amount, DateTime date, string note)
+    public void MakeDeposit(decimal amount, DateTime date, string note)
     {
         if (amount < 0)
         {
@@ -83,6 +89,8 @@ public class BankAccount
         }
         var deposit = new Transaction(amount, date, note);
         _allTransactions.Add(deposit);
+
+        AuditLog.Record(Number, "Deposit", amount, date);
     }
 
     /// <summary>
@@ -92,15 +100,17 @@ public class BankAccount
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
 
-        Transaction? overdraftTransaction 
+        Transaction? overdraftTransaction
             = CheckWithdrawalLimit(Balance - amount < _minimumBalance);
         Transaction? withdrawal = new(-amount, date, note);
 
         _allTransactions.Add(withdrawal);
 
+        AuditLog.Record(Number, "Withdrawal", amount, date);
+
         if (overdraftTransaction is not null)
             _allTransactions.Add(overdraftTransaction);
-     
+
     }
 
     /// <summary>
@@ -110,7 +120,7 @@ public class BankAccount
     {
         if (isOverdrawn)
         {
-           throw new InvalidOperationException("nit sufficient rubls for this withdrawal");
+            throw new InvalidOperationException("nit sufficient rubls for this withdrawal");
         }
         else
         {
@@ -132,20 +142,52 @@ public class BankAccount
         foreach (var item in _allTransactions)
         {
             balance += item.Amount;
-            report.AppendLine($"{ item.date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Note}");
+            report.AppendLine($"{item.Date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Note}");
         }
 
-        return report.ToString();   
+        return report.ToString();
     }
 
     // Ключевое слово virtual позволяет в дочернем классе
     // предоставить другую реализацию 
     // метода PerformMounthEndTransactions
     /// <summary>
-    /// Выполняет регламентные расчёты и транзакции в конце месяца. Переопределяется в классах-наследниках.
+    /// Выполняет регламентные расчёты и транзакции в конце месяца и начисляет бонусы по статусу клиента. Переопределяется в классах-наследниках.
     /// </summary>
     public virtual void PerformMonthEndTransactions()
     {
+        switch (Status)
+        {
+            case ClientStatus.Regular:
+                MakeWithdrawal(50m, DateTime.UtcNow, "Monthly fee (Regular)");
+                break;
+
+            case ClientStatus.Premium:
+                if (Balance > 10000m)
+                {
+                    MakeDeposit((Balance - 10000m) * 0.01m, DateTime.UtcNow, "Premium interest (1%)");
+                }
+                break;
+
+            case ClientStatus.VIP:
+                if (Balance > 10000m)
+                {
+                    MakeDeposit((Balance - 10000m) * 0.03m, DateTime.UtcNow, "VIP interest (3%)");
+                }
+
+                decimal totalWithdrawals = 0m;
+                foreach (var t in _allTransactions)
+                {
+                    if (t.Amount < 0)
+                        totalWithdrawals += -t.Amount;
+                }
+                if (totalWithdrawals > 0)
+                {
+                    MakeDeposit(totalWithdrawals * 0.05m, DateTime.UtcNow, "VIP cashback (5%)");
+                }
+                break;
+        }
+        // ===== КОНЕЦ ДОБАВЛЕНО =====
     }
 
     // переопределяем метод, который унаследовал от object
@@ -157,5 +199,25 @@ public class BankAccount
     {
         return $"Type: {GetType().Name}\tOwner: {Owner}\tNumber: {Number}\tBalance: {Balance}";
     }
-}
 
+    /// <summary>
+    /// Переводит деньги с текущего счёта на другой счёт. Списывает сумму с этого счёта, затем зачисляет на целевой.
+    /// </summary>
+    /// <param name="toAccount">Счёт, на который переводятся деньги.</param>
+    /// <param name="amount">Сумма перевода. Должна быть положительной.</param>
+    /// <param name="date">Дата перевода.</param>
+    /// <param name="note">Комментарий к переводу.</param>
+    /// <exception cref="ArgumentNullException">Если <paramref name="toAccount"/> равен null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Если <paramref name="amount"/> меньше или равен нулю.</exception>
+    public void Transfer(BankAccount toAccount, decimal amount, DateTime date, string note)
+    {
+        if (toAccount is null)
+            throw new ArgumentNullException(nameof(toAccount));
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Transfer amount must be positive");
+
+        MakeWithdrawal(amount, date, note);
+
+        toAccount.MakeDeposit(amount, date, note);
+    }
+}

@@ -11,7 +11,7 @@ public class Program
         Console.WriteLine($"account: {account2.Owner} {account2.Balance}$ {account2.Number}");
         account1.MakeDeposit(1000000, DateTime.UtcNow, ":)");
         Console.WriteLine(account1.Balance);
-        account1.MakeWithdrawal(1000, DateTime.UtcNow, ";)");
+        account1.MakeWithdrawal(1000, DateTime.UtcNow, "; )");
 
         Console.WriteLine(account1.GetAccountHistory());
 
@@ -21,7 +21,7 @@ public class Program
             account2.MakeWithdrawal(1000, DateTime.UtcNow, "&&&");
             Console.WriteLine(account2.Balance);
         }
-        catch(InvalidOperationException e)
+        catch (InvalidOperationException e)
         {
             Console.WriteLine(e.Message);
         }
@@ -54,9 +54,33 @@ public class Program
         {
             Console.WriteLine(account);
             account.PerformMonthEndTransactions();
-            Console.WriteLine(account.GetAccountHistory);
-
+            Console.WriteLine(account.GetAccountHistory()); 
         }
 
+        Console.WriteLine("\nДемонстрация статусов клиента");
+        BankAccount regular = new BankAccount("RegularUser", 50000m);
+        regular.Status = ClientStatus.Regular;
+        regular.PerformMonthEndTransactions();
+        Console.WriteLine($"Regular: баланс = {regular.Balance}");
+
+        BankAccount premium = new BankAccount("PremiumUser", 50000m);
+        premium.Status = ClientStatus.Premium;
+        premium.PerformMonthEndTransactions();
+        Console.WriteLine($"Premium: баланс = {premium.Balance}");
+
+        BankAccount vip = new BankAccount("VipUser", 50000m);
+        vip.Status = ClientStatus.VIP;
+        vip.PerformMonthEndTransactions();
+        Console.WriteLine($"VIP: баланс = {vip.Balance}");
+
+        Console.WriteLine("\nДемонстрация перевода");
+        BankAccount from = new BankAccount("Sender", 10000m);
+        BankAccount to = new BankAccount("Receiver", 1000m);
+        Console.WriteLine($"До перевода: from = {from.Balance}, to = {to.Balance}");
+        from.Transfer(to, 2500m, DateTime.UtcNow, "Перевод");
+        Console.WriteLine($"После перевода: from = {from.Balance}, to = {to.Balance}");
+
+        Console.WriteLine("\nЖурнал аудита ");
+        Console.WriteLine(AuditLog.Dump());
     }
 }
