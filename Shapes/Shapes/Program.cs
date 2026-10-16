@@ -41,7 +41,7 @@ public class Program
                 Console.WriteLine($"{shape.Kind} cannot scale.");
             }
 
-            Console.WriteLine("----------------------------------------");
+            Console.WriteLine("----------------------------------------"); 
         }
     }
 }
