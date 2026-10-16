@@ -16,7 +16,7 @@ public class Program
             new Circle("red", "red", 5),
             new Rectangle("blue", "blue", 4, 6),
             new Triangle("green", "green", 3, 8)
-        };
+        };  
 
         foreach (Shape shape in shapes)
         {
