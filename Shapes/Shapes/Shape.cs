@@ -37,7 +37,7 @@ public abstract class Shape
     }
 
     /// <summary>
-    /// Создаёт фигуру с указанием названия. Цвет по умолчанию — чёрный.
+    /// Создаёт фигуру с указанием названия.
     /// </summary>
     /// <param name="name">Название фигуры.</param>
     public Shape(string name) : this(name, "black")
