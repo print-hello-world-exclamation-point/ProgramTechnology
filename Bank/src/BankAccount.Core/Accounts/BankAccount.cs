@@ -29,7 +29,7 @@ public class BankAccount : IAccountOperations, IAccountStatement
         IEnumerable<IMonthEndRule>? monthEndRules = null)
     {
         _monthEndRules = monthEndRules?.ToList() ?? null;
-        //if (_monthEndRules is null)
+        //if (_monthEndRules is null) 
         //    _monthEndRules = null;
         //else _monthEndRules = monthEndRules!.ToList();
         _clock = clock;
