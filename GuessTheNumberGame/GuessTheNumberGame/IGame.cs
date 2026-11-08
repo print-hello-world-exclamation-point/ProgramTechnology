@@ -6,7 +6,7 @@
 public interface IGame
 {
     /// <summary>Событие, вызываемое после каждой неудачной попытки.</summary>
-    event EventHandler<GuessEventArgs> OnGuessMade;
+    event EventHandler<GuessEventArgs> OnGuessMade;  
 
     /// <summary>Событие, вызываемое при победе или поражении.</summary>
     event EventHandler<GameOverEventArgs> OnGameOver; 
