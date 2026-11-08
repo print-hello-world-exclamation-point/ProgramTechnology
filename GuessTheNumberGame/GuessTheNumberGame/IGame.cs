@@ -21,4 +21,4 @@ public interface IGame
     /// </summary>
     /// <param name="guess">Введенное число.</param>
     void MakeGuess(int guess);
-}
+}      
