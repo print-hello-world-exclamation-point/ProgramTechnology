@@ -29,7 +29,7 @@ public class BankAccount : IAccountOperations, IAccountStatement
         IEnumerable<IMonthEndRule>? monthEndRules = null)
     {
         _monthEndRules = monthEndRules?.ToList() ?? null;
-        //if (_monthEndRules is null) 
+        //if (_monthEndRules is null)
         //    _monthEndRules = null;
         //else _monthEndRules = monthEndRules!.ToList();
         _clock = clock;
@@ -74,6 +74,8 @@ public class BankAccount : IAccountOperations, IAccountStatement
 
     public virtual void PerforMonthEndTransactions()
     {
+        if (_monthEndRules is null) return;
+
         var asOf = _clock.Now;
         foreach (var rule in _monthEndRules)
             rule.Apply(this, asOf);
