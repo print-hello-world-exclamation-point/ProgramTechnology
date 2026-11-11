@@ -11,7 +11,6 @@ public class GameEngine : IGame
     private int _secretNumber;
     private int _currentAttempt;
 
-    // Реализуем события из интерфейса
     public event EventHandler<GuessEventArgs>? OnGuessMade;
     public event EventHandler<GameOverEventArgs>? OnGameOver;
 
@@ -40,21 +39,17 @@ public class GameEngine : IGame
     {
         _currentAttempt++;
 
-        // Если угадал
         if (guess == _secretNumber)
         {
             OnGameOver?.Invoke(this, new GameOverEventArgs(true, _secretNumber));
             return;
         }
 
-        // Если не угадал, определяем подсказку
         string hint = guess < _secretNumber ? "Больше" : "Меньше";
         int attemptsLeft = _settings.MaxAttempts - _currentAttempt;
 
-        // Вызываем событие попытки (передаем данные наружу)
         OnGuessMade?.Invoke(this, new GuessEventArgs(guess, hint, attemptsLeft));
 
-        // Если попытки закончились
         if (attemptsLeft <= 0)
         {
             OnGameOver?.Invoke(this, new GameOverEventArgs(false, _secretNumber));

@@ -8,14 +8,19 @@ public class ConsoleUI
 {
     private readonly IGame _game;
     private readonly GameSettings _settings;
+    private readonly IStatisticsService _stats; 
+
+    private bool _isGameActive;
+    private int _currentAttempts;
 
     /// <summary>
     /// Инициализирует интерфейс и подписывается на события игры.
     /// </summary>
-    public ConsoleUI(IGame game, GameSettings settings)
+    public ConsoleUI(IGame game, GameSettings settings, IStatisticsService stats)
     {
         _game = game;
         _settings = settings;
+        _stats = stats;
 
         _game.OnGuessMade += HandleGuessMade;
         _game.OnGameOver += HandleGameOver;
@@ -31,12 +36,13 @@ public class ConsoleUI
 
         _game.StartNewGame();
 
-        bool isGameRunning = true;
+        _isGameActive = true;
+        _currentAttempts = 0;
 
-        while (isGameRunning)
+        while (_isGameActive)
         {
             Console.Write("\nВведи свой вариант: ");
-            string input = Console.ReadLine();
+            string? input = Console.ReadLine();
 
             if (!int.TryParse(input, out int guess))
             {
@@ -44,17 +50,10 @@ public class ConsoleUI
                 continue;
             }
 
+            _currentAttempts++; 
             _game.MakeGuess(guess);
-
-            if (input != null && _game is GameEngine)
-            {
-            }
-
-            if (!IsGameActive) break;
         }
     }
-
-    private bool IsGameActive = true;
 
     /// <summary>
     /// Обработчик события: выводит подсказку.
@@ -65,19 +64,21 @@ public class ConsoleUI
     }
 
     /// <summary>
-    /// Обработчик события: выводит результат игры.
+    /// Обработчик события: выводит результат игры и сохраняет статистику.
     /// </summary>
     private void HandleGameOver(object? sender, GameOverEventArgs e)
     {
-        IsGameActive = false; 
+        _isGameActive = false;
 
         if (e.IsWin)
         {
-            Console.WriteLine("Поздравляю! Ты угадал число! 🎉");
+            Console.WriteLine($"Поздравляю! Ты угадал число! 🎉 (Попыток: {_currentAttempts})");
         }
         else
         {
             Console.WriteLine($"Ты проиграл. Я загадал число {e.SecretNumber}.");
         }
+
+        _stats.SaveResult(e.IsWin, _currentAttempts, _settings.Level);
     }
 }
