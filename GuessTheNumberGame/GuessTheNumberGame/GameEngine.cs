@@ -14,6 +14,9 @@ public class GameEngine : IGame
     public event EventHandler<GuessEventArgs>? OnGuessMade;
     public event EventHandler<GameOverEventArgs>? OnGameOver;
 
+    /// <summary>Текущее количество оставшихся попыток.</summary>
+    public int AttemptsLeft { get; private set; }
+
     /// <summary>
     /// Инициализирует движок игры с указанными настройками.
     /// </summary>
