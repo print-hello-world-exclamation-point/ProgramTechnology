@@ -11,8 +11,8 @@ public class ConsoleGameView : IGameView
     public void ShowWelcome(GameSettings settings)
     {
         Console.Clear();
-        Console.WriteLine($"--- Игра 'Угадай число' (Уровень: {settings.DifficultyName}) ---");
-        Console.WriteLine($"Я загадал число от {settings.MinValue} до {settings.MaxValue}. Всего попыток: {settings.MaxAttempts}.\n");
+        Console.WriteLine($" Игра 'Угадай число' (Уровень: {settings.DifficultyName})");
+        Console.WriteLine($"Загадано число от {settings.MinValue} до {settings.MaxValue}. Всего попыток: {settings.MaxAttempts}.\n");
     }
 
     public void ShowGuessFeedback(GuessResult result, int attemptsLeft)
@@ -31,11 +31,11 @@ public class ConsoleGameView : IGameView
     {
         if (isWin)
         {
-            Console.WriteLine($"\n🎉 Поздравляю! Ты угадал число {secretNumber} за {attemptsUsed} попыток!");
+            Console.WriteLine($"\n🎉 Число {secretNumber} отгадано за {attemptsUsed} попыток.");
         }
         else
         {
-            Console.WriteLine($"\n💀 Ты проиграл. Было загадано число: {secretNumber}.");
+            Console.WriteLine($"\n💀 Поражение. Было загадано число: {secretNumber}.");
         }
 
         Console.WriteLine("Результат игры сохранен в файл статистики.");

@@ -6,7 +6,7 @@
 public interface IRandomGenerator
 {
     /// <summary>
-    /// Возвращает случайное целое число в заданном диапазоне (включительно).
+    /// Возвращает случайное целое число в заданном диапазоне.
     /// </summary>
     int Next(int minValue, int maxValue);
 }

@@ -3,7 +3,7 @@
 namespace GuessNumber.Core.Interfaces;
 
 /// <summary>
-/// Контракт логики игры "Угадай число".
+/// Контракт логики игры.
 /// </summary>
 public interface IGameEngine
 {
@@ -11,7 +11,7 @@ public interface IGameEngine
     event EventHandler<GameOverEventArgs>? GameOver;
 
     /// <summary>
-    /// Запускает новую игру (загадывает число и сбрасывает счетчик попыток).
+    /// Запускает новую игру.
     /// </summary>
     void StartNewGame();
 

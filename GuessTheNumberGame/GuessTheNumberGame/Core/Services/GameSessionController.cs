@@ -16,11 +16,7 @@ public class GameSessionController : IDisposable
 
     private bool _isRunning;
 
-    public GameSessionController(
-        IGameEngine gameEngine,
-        IUserInput userInput,
-        IGameView gameView,
-        GameSettings settings)
+    public GameSessionController(IGameEngine gameEngine, IUserInput userInput, IGameView gameView, GameSettings settings)
     {
         _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
         _userInput = userInput ?? throw new ArgumentNullException(nameof(userInput));
@@ -32,7 +28,7 @@ public class GameSessionController : IDisposable
     }
 
     /// <summary>
-    /// Запускает и ведет игровой цикл до победы или исчерпания попыток.
+    /// Запускает и ведет игровой цикл до победы или окончания попыток.
     /// </summary>
     public void Run()
     {
